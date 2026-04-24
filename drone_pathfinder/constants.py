@@ -1,0 +1,102 @@
+# ============================================================================
+# CONSTANTS - Configuration for Drone Pathfinder Simulator
+# ============================================================================
+
+import pygame
+
+# ============================================================================
+# CELL TYPES
+# ============================================================================
+EMPTY = 0
+OBSTACLE = 1
+FORBIDDEN = 2
+DIFFICULT = 3
+START = 4
+END = 5
+
+# ============================================================================
+# COST VALUES FOR EACH CELL TYPE
+# ============================================================================
+CELL_COSTS = {
+    EMPTY: 1,
+    OBSTACLE: float('inf'),  # Cannot pass
+    FORBIDDEN: float('inf'),  # Cannot pass
+    DIFFICULT: 3,  # Higher energy cost
+    START: 1,
+    END: 1
+}
+
+# ============================================================================
+# COLORS (RGB)
+# ============================================================================
+COLORS = {
+    EMPTY: (245, 245, 245),       # Very light gray (not pure white)
+    OBSTACLE: (40, 40, 40),         # Dark gray/black
+    FORBIDDEN: (231, 76, 60),       # Red
+    DIFFICULT: (241, 196, 15),      # Orange/Gold
+    START: (46, 204, 113),          # Green
+    END: (52, 152, 219),            # Blue
+    'explored': (241, 196, 15),     # Gold/Yellow
+    'path': (155, 89, 182),         # Purple
+    'button': (236, 240, 241),      # Light gray
+    'button_hover': (189, 195, 199), # Medium gray
+    'button_active': (52, 152, 219), # Blue
+    'button_text': (44, 62, 80),    # Dark text
+    'sidebar_bg': (236, 240, 241),  # Light gray background
+}
+
+# ============================================================================
+# SCREEN AND GRID SETTINGS
+# ============================================================================
+SCREEN_WIDTH = 1600
+SCREEN_HEIGHT = 900
+GRID_WIDTH = 30
+GRID_HEIGHT = 20
+CELL_SIZE = 30  # pixels per cell
+
+# Calculate actual grid dimensions
+GRID_PIXEL_WIDTH = GRID_WIDTH * CELL_SIZE
+GRID_PIXEL_HEIGHT = GRID_HEIGHT * CELL_SIZE
+
+# Center the grid horizontally
+GRID_OFFSET_X = (SCREEN_WIDTH - GRID_PIXEL_WIDTH) // 2
+GRID_OFFSET_Y = 20  # Top padding
+
+# Sidebar for UI
+SIDEBAR_WIDTH = 300
+SIDEBAR_X = GRID_OFFSET_X + GRID_PIXEL_WIDTH + 30
+
+# ============================================================================
+# UI BUTTON SETTINGS
+# ============================================================================
+BUTTON_WIDTH = 160
+BUTTON_HEIGHT = 45
+BUTTON_MARGIN = 12
+BUTTON_FONT_SIZE = 13
+BUTTON_RADIUS = 8  # Rounded corners
+
+# ============================================================================
+# ANIMATION AND PERFORMANCE
+# ============================================================================
+FPS = 60
+ANIMATION_SPEED = 0.5  # Controls speed of node exploration visualization (0.1 to 1.0)
+
+# ============================================================================
+# MOVEMENT DIRECTIONS (4-way: up, down, left, right)
+# ============================================================================
+DIRECTIONS = [
+    (-1, 0),  # Up
+    (1, 0),   # Down
+    (0, -1),  # Left
+    (0, 1)    # Right
+]
+
+# ============================================================================
+# UI TOOL TYPES
+# ============================================================================
+TOOL_NONE = 0
+TOOL_START = 1
+TOOL_END = 2
+TOOL_OBSTACLE = 3
+TOOL_FORBIDDEN = 4
+TOOL_DIFFICULT = 5

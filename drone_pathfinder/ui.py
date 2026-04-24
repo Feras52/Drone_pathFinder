@@ -1,0 +1,173 @@
+﻿# ============================================================================
+# UI MODULE - Button and User Interface Management
+# ============================================================================
+
+import pygame
+from constants import (
+    BUTTON_WIDTH, BUTTON_HEIGHT, BUTTON_MARGIN, BUTTON_FONT_SIZE,
+    SIDEBAR_WIDTH, SIDEBAR_X, SCREEN_HEIGHT, GRID_PIXEL_WIDTH,
+    COLORS, TOOL_NONE, TOOL_START, TOOL_END, TOOL_OBSTACLE,
+    TOOL_FORBIDDEN, TOOL_DIFFICULT, BUTTON_RADIUS
+)
+
+
+class Button:
+    """A styled interactive button."""
+
+    def __init__(self, x, y, width, height, text, tool_id=TOOL_NONE):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.tool_id = tool_id
+        self.is_hovered = False
+        self.is_active = False
+
+    def check_hover(self, mouse_pos):
+        self.is_hovered = self.rect.collidepoint(mouse_pos)
+
+    def draw(self, surface, font):
+        if self.is_active:
+            color = COLORS['button_active']
+            text_color = (255, 255, 255)
+        elif self.is_hovered:
+            color = COLORS['button_hover']
+            text_color = (44, 62, 80)
+        else:
+            color = COLORS['button']
+            text_color = COLORS['button_text']
+
+        shadow = self.rect.copy()
+        shadow.x += 2
+        shadow.y += 2
+        pygame.draw.rect(surface, (200, 200, 200), shadow, border_radius=BUTTON_RADIUS)
+
+        pygame.draw.rect(surface, color, self.rect, border_radius=BUTTON_RADIUS)
+        pygame.draw.rect(surface, (52, 152, 219) if self.is_active else (120, 120, 120), self.rect, 2, border_radius=BUTTON_RADIUS)
+
+        text_surface = font.render(self.text, True, text_color)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        surface.blit(text_surface, text_rect)
+
+    def is_clicked(self, mouse_pos):
+        return self.rect.collidepoint(mouse_pos)
+
+
+class UIManager:
+    """Manages all UI elements and the control sidebar."""
+
+    def __init__(self):
+        self.buttons = []
+        self.active_tool = TOOL_NONE
+        self.create_buttons()
+        self.font_large = pygame.font.Font(None, BUTTON_FONT_SIZE + 2)
+        self.font_small = pygame.font.Font(None, BUTTON_FONT_SIZE - 4)
+        self.font_title = pygame.font.Font(None, BUTTON_FONT_SIZE + 8)
+
+    def create_buttons(self):
+        start_x = SIDEBAR_X + 10
+        start_y = 40
+        gap = BUTTON_HEIGHT + BUTTON_MARGIN
+
+        buttons = [
+            ("Set Start", TOOL_START),
+            ("Set End", TOOL_END),
+            ("Add Obstacle", TOOL_OBSTACLE),
+            ("Forbidden Zone", TOOL_FORBIDDEN),
+            ("Difficult Zone", TOOL_DIFFICULT),
+            ("Run A*", -1),
+            ("Clear Grid", -2),
+            ("Random Map", -3),
+        ]
+
+        for index, (label, tool_id) in enumerate(buttons):
+            y = start_y + index * gap
+            self.buttons.append(Button(start_x, y, BUTTON_WIDTH, BUTTON_HEIGHT, label, tool_id))
+
+    def handle_event(self, event, grid, astar):
+        if event.type == pygame.MOUSEMOTION:
+            for button in self.buttons:
+                button.check_hover(event.pos)
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            for button in self.buttons:
+                if button.is_clicked(event.pos):
+                    if button.tool_id == -1:
+                        return 'run_astar', None
+                    if button.tool_id == -2:
+                        return 'clear_grid', None
+                    if button.tool_id == -3:
+                        return 'random_map', None
+                    self.set_active_tool(button.tool_id)
+                    return 'set_tool', button.tool_id
+
+        return None, None
+
+    def set_active_tool(self, tool_id):
+        self.active_tool = tool_id
+        for button in self.buttons:
+            button.is_active = button.tool_id == tool_id
+
+    def get_active_tool(self):
+        return self.active_tool
+
+    def draw(self, surface):
+        sidebar_rect = pygame.Rect(SIDEBAR_X - 20, 0, SIDEBAR_WIDTH + 40, SCREEN_HEIGHT)
+        pygame.draw.rect(surface, COLORS['sidebar_bg'], sidebar_rect)
+
+        pygame.draw.line(surface, (180, 180, 180), (SIDEBAR_X - 20, 0), (SIDEBAR_X - 20, SCREEN_HEIGHT), 2)
+        pygame.draw.rect(surface, (220, 220, 220), (SIDEBAR_X - 18, 0, SIDEBAR_WIDTH + 36, SCREEN_HEIGHT), 2, border_radius=20)
+
+        for button in self.buttons:
+            button.draw(surface, self.font_large)
+
+        self.draw_info_panel(surface)
+
+    def draw_info_panel(self, surface):
+        x = SIDEBAR_X + 10
+        y = 410
+
+        title = self.font_title.render("Quick Guide", True, (44, 62, 80))
+        surface.blit(title, (x, y))
+
+        y += 36
+        lines = [
+            "1. Select a tool",
+            "2. Click on the grid",
+            "3. Click Run A*",
+            "",
+            "Cell colors:",
+            "White - Empty",
+            "Black - Obstacle",
+            "Red - Forbidden",
+            "Gold - Difficult",
+            "Green - Start",
+            "Blue - End",
+            "Yellow - Explored",
+            "Purple - Path",
+        ]
+
+        for line in lines:
+            if line == "":
+                y += 10
+                continue
+            text = self.font_small.render(line, True, (50, 50, 50))
+            surface.blit(text, (x, y))
+            y += 20
+
+    def draw_results(self, surface, path_cost, explored_count):
+        x = SIDEBAR_X + 10
+        y = 20
+
+        box = pygame.Rect(x - 10, y - 10, BUTTON_WIDTH, 110)
+        pygame.draw.rect(surface, (46, 204, 113), box, border_radius=12)
+        pygame.draw.rect(surface, (39, 174, 96), box, 2, border_radius=12)
+
+        title = self.font_large.render("A* Results", True, (255, 255, 255))
+        surface.blit(title, (x, y))
+
+        y += 36
+        cost_text = self.font_large.render(f"Cost: {path_cost:.1f}", True, (255, 255, 255))
+        surface.blit(cost_text, (x, y))
+
+        y += 30
+        nodes_text = self.font_large.render(f"Nodes: {explored_count}", True, (255, 255, 255))
+        surface.blit(nodes_text, (x, y))
