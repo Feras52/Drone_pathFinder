@@ -1,19 +1,55 @@
-﻿# ============================================================================
-# UI MODULE - Button and User Interface Management
-# ============================================================================
+﻿import pygame
 
-import pygame
 from constants import (
     BUTTON_WIDTH, BUTTON_HEIGHT, BUTTON_MARGIN, BUTTON_FONT_SIZE,
-    SIDEBAR_WIDTH, SIDEBAR_X, SCREEN_HEIGHT, GRID_PIXEL_WIDTH,
+    SIDEBAR_WIDTH, SIDEBAR_X, SCREEN_HEIGHT, grid_pixel_width,
     COLORS, TOOL_NONE, TOOL_START, TOOL_END, TOOL_OBSTACLE,
     TOOL_FORBIDDEN, TOOL_DIFFICULT, BUTTON_RADIUS
 )
 
+class NumSlider:
+    def __init__(self, x, y, width, min_value, max_value, initial_value,text ="eee"):
+        self.rect = pygame.Rect(x, y, width, 20)
+        self.min_value = min_value
+        self.max_value = max_value
+        self.value = initial_value
+        self.is_dragging = False
+        self.text = text
+        self.font = pygame.font.Font(None, 20)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.is_dragging = True
+                self.update_value_from_pos(event.pos[0])
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.is_dragging = False
+        elif event.type == pygame.MOUSEMOTION and self.is_dragging:
+            self.update_value_from_pos(event.pos[0])
+
+    def update_value_from_pos(self, x):
+        relative_x = max(0, min(x - self.rect.x, self.rect.width))
+        self.value = self.min_value + (relative_x / self.rect.width) * (self.max_value - self.min_value)
+
+    def draw(self, surface):
+        text_surface = self.font.render(self.text, True, (0, 0, 0))
+        surface.blit(text_surface, (self.rect.x, self.rect.y - 20))
+
+        pygame.draw.rect(surface, (60, 60, 60), self.rect, border_radius=10)
+
+        percent = (self.value - self.min_value) / (self.max_value - self.min_value)
+        fill_width = int(self.rect.width * percent)
+
+        fill_rect = pygame.Rect(self.rect.x, self.rect.y, fill_width, self.rect.height)
+        pygame.draw.rect(surface, (100, 180, 255), fill_rect, border_radius=10)
+
+        knob_x = self.rect.x + fill_width
+        knob_y = self.rect.centery
+        knob_radius = self.rect.height // 2 + 2
+
+        pygame.draw.circle(surface, (255, 255, 255), (knob_x, knob_y), knob_radius)
 
 class Button:
-    """A styled interactive button."""
-
     def __init__(self, x, y, width, height, text, tool_id=TOOL_NONE):
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
@@ -50,17 +86,25 @@ class Button:
     def is_clicked(self, mouse_pos):
         return self.rect.collidepoint(mouse_pos)
 
-
 class UIManager:
-    """Manages all UI elements and the control sidebar."""
-
     def __init__(self):
         self.buttons = []
+
+        start_x = SIDEBAR_X + 10
+        start_y = 40
+        gap = BUTTON_HEIGHT + BUTTON_MARGIN
+        
+        self.xSliders = (NumSlider(start_x, start_y + 8 * gap + 20, BUTTON_WIDTH, 5, 100, 1,"grid x"))
+        self.ySliders = (NumSlider(start_x, start_y + 8 * gap + 60, BUTTON_WIDTH, 5, 100, 1,"grid y"))
         self.active_tool = TOOL_NONE
         self.create_buttons()
+ 
         self.font_large = pygame.font.Font(None, BUTTON_FONT_SIZE + 2)
         self.font_small = pygame.font.Font(None, BUTTON_FONT_SIZE - 4)
         self.font_title = pygame.font.Font(None, BUTTON_FONT_SIZE + 8)
+
+    def getDimensions(self):
+        return max(5,int(self.xSliders.value)), max(5,int(self.ySliders.value))
 
     def create_buttons(self):
         start_x = SIDEBAR_X + 10
@@ -83,6 +127,10 @@ class UIManager:
             self.buttons.append(Button(start_x, y, BUTTON_WIDTH, BUTTON_HEIGHT, label, tool_id))
 
     def handle_event(self, event, grid, astar):
+
+        self.xSliders.handle_event(event)
+        self.ySliders.handle_event(event)
+        
         if event.type == pygame.MOUSEMOTION:
             for button in self.buttons:
                 button.check_hover(event.pos)
@@ -118,17 +166,20 @@ class UIManager:
 
         for button in self.buttons:
             button.draw(surface, self.font_large)
+        
+        self.xSliders.draw(surface)
+        self.ySliders.draw(surface)
 
         self.draw_info_panel(surface)
 
     def draw_info_panel(self, surface):
         x = SIDEBAR_X + 10
-        y = 410
+        y = 580
 
         title = self.font_title.render("Quick Guide", True, (44, 62, 80))
         surface.blit(title, (x, y))
 
-        y += 36
+        y += 30
         lines = [
             "1. Select a tool",
             "2. Click on the grid",

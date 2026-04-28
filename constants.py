@@ -43,6 +43,8 @@ COLORS = {
     'button_active': (52, 152, 219), # Blue
     'button_text': (44, 62, 80),    # Dark text
     'sidebar_bg': (236, 240, 241),  # Light gray background
+    'slider_bg': (200, 200, 200),   # Light gray slider background
+    'slider_fill': (100, 100, 100)   # Dark gray slider fill
 }
 
 # ============================================================================
@@ -50,21 +52,23 @@ COLORS = {
 # ============================================================================
 SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 900
-GRID_WIDTH = 30
-GRID_HEIGHT = 20
+grid_width  :int = 30
+grid_height = 20
 CELL_SIZE = 30  # pixels per cell
 
+
 # Calculate actual grid dimensions
-GRID_PIXEL_WIDTH = GRID_WIDTH * CELL_SIZE
-GRID_PIXEL_HEIGHT = GRID_HEIGHT * CELL_SIZE
+grid_pixel_width = grid_width * CELL_SIZE
+grid_pixel_height = grid_height * CELL_SIZE
 
 # Center the grid horizontally
-GRID_OFFSET_X = (SCREEN_WIDTH - GRID_PIXEL_WIDTH) // 2
+grid_offset_x = (SCREEN_WIDTH - grid_pixel_width) // 2
 GRID_OFFSET_Y = 20  # Top padding
+
 
 # Sidebar for UI
 SIDEBAR_WIDTH = 300
-SIDEBAR_X = GRID_OFFSET_X + GRID_PIXEL_WIDTH + 30
+SIDEBAR_X = grid_offset_x + grid_pixel_width + 30
 
 # ============================================================================
 # UI BUTTON SETTINGS
