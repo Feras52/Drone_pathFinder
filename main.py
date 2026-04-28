@@ -11,7 +11,6 @@ from astar import AStar
 from ui import UIManager
 from visualization import Visualizer
 
-
 class DronePathfinderApp:
     def __init__(self):
         pygame.init()

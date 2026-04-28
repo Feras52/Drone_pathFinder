@@ -1,7 +1,3 @@
-# ============================================================================
-# VISUALIZATION MODULE - Pygame Rendering and Graphics
-# ============================================================================
-
 import pygame
 from constants import (
     COLORS, CELL_SIZE, grid_pixel_width, grid_pixel_height,
@@ -9,40 +5,88 @@ from constants import (
     EMPTY, OBSTACLE, FORBIDDEN, DIFFICULT, START, END,
     ANIMATION_SPEED
 )
+import math
 
 
 class Visualizer:
-    """Handles all visual rendering and animations."""
-    
     def __init__(self, screen, grid):
-        """
-        Initialize the visualizer.
-        
-        Args:
-            screen: Pygame screen surface
-            grid: Grid object to visualize
-        """
         self.screen = screen
         self.grid = grid
         self.explored_nodes = []
         self.path = []
         self.animation_progress = 0.0
         self.is_animating = False
-    
+        self.animation_endedAt = 0
+        self.image = pygame.image.load("./drone.png").convert_alpha()
+
+    def drawDroneImage(self):
+        if self.is_animating or not self.path or len(self.path) < 2:
+            return
+
+        t = (pygame.time.get_ticks() - self.animation_endedAt) / 1000.0
+
+        cell_index = int(t)
+        percentage = t % 1
+
+        if cell_index >= len(self.path) - 1:
+            cell_index = len(self.path) - 2
+            percentage = 1.0
+
+        cell_a = self.path[cell_index]
+        cell_b = self.path[cell_index + 1]
+
+        if cell_a is None or cell_b is None:
+            return
+
+        cell_w = grid_pixel_width / self.grid.width
+        cell_h = grid_pixel_height / self.grid.height
+
+        ax = cell_a.col * cell_w
+        ay = cell_a.row * cell_h
+
+        bx = cell_b.col * cell_w
+        by = cell_b.row * cell_h
+
+        interp_x = ax + (bx - ax) * percentage
+        interp_y = ay + (by - ay) * percentage
+
+        x = grid_offset_x + interp_x
+        y = GRID_OFFSET_Y + interp_y
+
+        drone_size = min(cell_w, cell_h) * 0.6
+        drone_x = x + (cell_w - drone_size) / 2
+        drone_y = y + (cell_h - drone_size) / 2
+
+        dx = bx - ax
+        dy = by - ay
+        angle = math.degrees(math.atan2(-dy, dx) + math.pi / 2)
+        
+        rotated = pygame.transform.rotate(self.image, angle)
+        rect = rotated.get_rect(center=(drone_x + drone_size/2, drone_y + drone_size/2))
+        
+        self.screen.blit(rotated, rect.topleft)
+        # self.screen.blit(self.image, (drone_x, drone_y))        
+            
+
     def set_pathfinding_data(self, explored_nodes, path):
+        cellheight = grid_pixel_height / self.grid.height
+        
+        self.image = pygame.transform.scale(self.image, (int(cellheight), int(cellheight)))
+
         self.explored_nodes = explored_nodes
         self.path = path
         self.animation_progress = 0.0
         self.is_animating = True
-    
+        self.animation_endedAt = 0
+
     def update_animation(self):
-        """Update animation progress."""
         if self.is_animating:
             self.animation_progress += ANIMATION_SPEED / 100.0
             if self.animation_progress >= 1.0:
                 self.animation_progress = 1.0
                 self.is_animating = False
-    
+                self.animation_endedAt = pygame.time.get_ticks()
+
     def draw_grid(self):
         pygame.draw.rect(self.screen, (245, 245, 245), 
                         (grid_offset_x, GRID_OFFSET_Y, grid_pixel_width, grid_pixel_height))
@@ -93,7 +137,7 @@ class Visualizer:
                             (x, y, cellwidth, cellheight))
 
     def draw_path(self):
-        if not self.path or len(self.path) < 2:
+        if not self.path or len(self.path) < 2 or self.is_animating:
             return
 
         valid_path = []
@@ -124,15 +168,14 @@ class Visualizer:
             y = GRID_OFFSET_Y + int(cell.row * cellheight)
             pygame.draw.rect(self.screen, COLORS['path'], (x, y, cellwidth, cellheight))
 
-        if self.animation_progress >= 1.0:
-            points = [
-                (int(grid_offset_x + cell.col * cellwidth + cellwidth // 2),
-                 int(GRID_OFFSET_Y + cell.row * cellheight + cellheight // 2))
-                for cell in valid_path
-            ]
+        points = [
+            (int(grid_offset_x + cell.col * cellwidth + cellwidth // 2),
+                int(GRID_OFFSET_Y + cell.row * cellheight + cellheight // 2))
+            for cell in valid_path
+        ]
 
-            if len(points) >= 2:
-                pygame.draw.lines(self.screen, (100, 0, 100), False, points, 3)
+        if len(points) >= 2:
+            pygame.draw.lines(self.screen, (100, 0, 100), False, points, 3)
 
     def draw_cell_costs_text(self):
         cellheight = grid_pixel_height / self.grid.height
@@ -158,12 +201,14 @@ class Visualizer:
         self.draw_explored_nodes()
         self.draw_path()
         self.draw_cell_costs_text()
-    
+        self.drawDroneImage()
+        
     def clear_pathfinding_visualization(self):
         self.explored_nodes = []
         self.path = []
         self.animation_progress = 0.0
         self.is_animating = False
+        self.animation_endedAt = 0
     
     def get_cell_from_screen_pos(self, pos):
         x, y = pos
