@@ -3,7 +3,7 @@ from constants import (
     COLORS, CELL_SIZE, grid_pixel_width, grid_pixel_height,
     grid_offset_x, GRID_OFFSET_Y,
     EMPTY, OBSTACLE, FORBIDDEN, DIFFICULT, START, END,
-    ANIMATION_SPEED
+    ANIMATION_SPEED, DRONE_SPEED
 )
 import math
 
@@ -18,12 +18,16 @@ class Visualizer:
         self.is_animating = False
         self.animation_endedAt = 0
         self.image = pygame.image.load("./drone.png").convert_alpha()
+        self.brickwall_image = pygame.image.load("./brickwall.png").convert()
+        self.base_image = pygame.image.load("./base.png").convert_alpha()
+        self.start_image = pygame.image.load("./start.png").convert_alpha()
+        self.destination_image = pygame.image.load("./destination.png").convert_alpha()
 
     def drawDroneImage(self):
         if self.is_animating or not self.path or len(self.path) < 2:
             return
 
-        t = (pygame.time.get_ticks() - self.animation_endedAt) / 1000.0
+        t = (pygame.time.get_ticks() - self.animation_endedAt) * DRONE_SPEED / 1000.0
 
         cell_index = int(t)
         percentage = t % 1
@@ -87,6 +91,10 @@ class Visualizer:
                 self.is_animating = False
                 self.animation_endedAt = pygame.time.get_ticks()
 
+    def has_drone_reached_destination(self):
+        """Check if drone animation is complete and has reached the destination"""
+        return not self.is_animating and self.animation_endedAt > 0 and self.path and len(self.path) >= 2
+
     def draw_grid(self):
         pygame.draw.rect(self.screen, (245, 245, 245), 
                         (grid_offset_x, GRID_OFFSET_Y, grid_pixel_width, grid_pixel_height))
@@ -114,13 +122,29 @@ class Visualizer:
         for r in range(self.grid.height):
             for c in range(self.grid.width):
                 cell = self.grid.get_cell(r, c)
-                color = COLORS.get(cell.cell_type, (245, 245, 245))
-
                 x = grid_offset_x + c * cellwidth
                 y = GRID_OFFSET_Y + r * cellheight
 
-                pygame.draw.rect(self.screen, color,
-                                (x, y, cellwidth, cellheight))
+                if cell.cell_type == OBSTACLE:
+                    # Draw brick wall texture for obstacles
+                    brick_scaled = pygame.transform.scale(self.brickwall_image, (int(cellwidth), int(cellheight)))
+                    self.screen.blit(brick_scaled, (x, y))
+                elif cell.cell_type == FORBIDDEN:
+                    # Draw military base icon for forbidden zones
+                    base_scaled = pygame.transform.scale(self.base_image, (int(cellwidth), int(cellheight)))
+                    self.screen.blit(base_scaled, (x, y))
+                elif cell.cell_type == START:
+                    # Draw start icon for start position
+                    start_scaled = pygame.transform.scale(self.start_image, (int(cellwidth), int(cellheight)))
+                    self.screen.blit(start_scaled, (x, y))
+                elif cell.cell_type == END:
+                    # Draw destination icon for end position
+                    destination_scaled = pygame.transform.scale(self.destination_image, (int(cellwidth), int(cellheight)))
+                    self.screen.blit(destination_scaled, (x, y))
+                else:
+                    color = COLORS.get(cell.cell_type, (245, 245, 245))
+                    pygame.draw.rect(self.screen, color,
+                                    (x, y, cellwidth, cellheight))
 
     def draw_explored_nodes(self):
         cellheight = grid_pixel_height / self.grid.height

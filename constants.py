@@ -52,23 +52,23 @@ COLORS = {
 # ============================================================================
 SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 900
-grid_width  :int = 30
-grid_height = 20
-CELL_SIZE = 30  # pixels per cell
+grid_width  :int = 31
+grid_height = 21
+CELL_SIZE = 40  # pixels per cell
 
 
 # Calculate actual grid dimensions
 grid_pixel_width = grid_width * CELL_SIZE
 grid_pixel_height = grid_height * CELL_SIZE
 
-# Center the grid horizontally
-grid_offset_x = (SCREEN_WIDTH - grid_pixel_width) // 2
+# Position grid on the left with sidebar on right
+grid_offset_x = 20
 GRID_OFFSET_Y = 20  # Top padding
 
 
-# Sidebar for UI
+# Sidebar for UI - positioned on the right
 SIDEBAR_WIDTH = 300
-SIDEBAR_X = grid_offset_x + grid_pixel_width + 30
+SIDEBAR_X = SCREEN_WIDTH - SIDEBAR_WIDTH - 10
 
 # ============================================================================
 # UI BUTTON SETTINGS
@@ -84,6 +84,7 @@ BUTTON_RADIUS = 8  # Rounded corners
 # ============================================================================
 FPS = 60
 ANIMATION_SPEED = 0.5  # Controls speed of node exploration visualization (0.1 to 1.0)
+DRONE_SPEED = 4.0  # Controls drone travel speed multiplier (1.0 = normal, 2.0 = twice as fast)
 
 # ============================================================================
 # MOVEMENT DIRECTIONS (4-way: up, down, left, right)

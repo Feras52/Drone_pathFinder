@@ -174,51 +174,63 @@ class UIManager:
 
     def draw_info_panel(self, surface):
         x = SIDEBAR_X + 10
-        y = 580
+        y = 610
 
+        # Larger font for quick guide
+        guide_font = pygame.font.Font(None, 14)
+        
         title = self.font_title.render("Quick Guide", True, (44, 62, 80))
         surface.blit(title, (x, y))
 
-        y += 30
+        y += 32
+        
+        # Single list
         lines = [
             "1. Select a tool",
-            "2. Click on the grid",
+            "2. Click on grid",
             "3. Click Run A*",
             "",
-            "Cell colors:",
-            "White - Empty",
-            "Black - Obstacle",
-            "Red - Forbidden",
-            "Gold - Difficult",
-            "Green - Start",
-            "Blue - End",
+            "Colors:",
+            "White - Unexplored",
+            "Wall - Obstacle",
+            "Military Base - Forbidden",
             "Yellow - Explored",
             "Purple - Path",
         ]
 
+        # Draw list
+        list_x = x
+        list_y = y
         for line in lines:
             if line == "":
-                y += 10
+                list_y += 8
                 continue
-            text = self.font_small.render(line, True, (50, 50, 50))
-            surface.blit(text, (x, y))
-            y += 20
+            text = guide_font.render(line, True, (50, 50, 50))
+            surface.blit(text, (list_x, list_y))
+            list_y += 22
 
     def draw_results(self, surface, path_cost, explored_count):
-        x = SIDEBAR_X + 10
-        y = 20
+        from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+        
+        box_width = BUTTON_WIDTH
+        box_height = 110
+        x = (SCREEN_WIDTH - box_width) // 2
+        y = (SCREEN_HEIGHT - box_height) // 2
 
-        box = pygame.Rect(x - 10, y - 10, BUTTON_WIDTH, 110)
+        box = pygame.Rect(x - 10, y - 10, box_width, box_height)
         pygame.draw.rect(surface, (46, 204, 113), box, border_radius=12)
         pygame.draw.rect(surface, (39, 174, 96), box, 2, border_radius=12)
 
         title = self.font_large.render("A* Results", True, (255, 255, 255))
-        surface.blit(title, (x, y))
+        title_rect = title.get_rect(center=(x + box_width // 2, y + 5))
+        surface.blit(title, title_rect)
 
         y += 36
         cost_text = self.font_large.render(f"Cost: {path_cost:.1f}", True, (255, 255, 255))
-        surface.blit(cost_text, (x, y))
+        cost_rect = cost_text.get_rect(center=(x + box_width // 2, y))
+        surface.blit(cost_text, cost_rect)
 
         y += 30
         nodes_text = self.font_large.render(f"Nodes: {explored_count}", True, (255, 255, 255))
-        surface.blit(nodes_text, (x, y))
+        nodes_rect = nodes_text.get_rect(center=(x + box_width // 2, y))
+        surface.blit(nodes_text, nodes_rect)

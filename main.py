@@ -133,7 +133,7 @@ class DronePathfinderApp:
             self.visualizer.draw_all()
             self.ui_manager.draw(self.screen)
             
-            if self.path_found:
+            if self.path_found and self.visualizer.has_drone_reached_destination():
                 self.ui_manager.draw_results(self.screen, self.last_cost, self.last_explored_count)
             pygame.display.flip()
         except Exception as e:
