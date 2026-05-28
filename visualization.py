@@ -9,6 +9,7 @@ import math
 
 
 class Visualizer:
+    # initialiser visualiseur
     def __init__(self, screen, grid):
         self.screen = screen
         self.grid = grid
@@ -23,6 +24,7 @@ class Visualizer:
         self.start_image = pygame.image.load("./start.png").convert_alpha()
         self.destination_image = pygame.image.load("./destination.png").convert_alpha()
 
+    # dessiner animation drone
     def drawDroneImage(self):
         if self.is_animating or not self.path or len(self.path) < 2:
             return
@@ -68,10 +70,10 @@ class Visualizer:
         rotated = pygame.transform.rotate(self.image, angle)
         rect = rotated.get_rect(center=(drone_x + drone_size/2, drone_y + drone_size/2))
         
-        self.screen.blit(rotated, rect.topleft)
-        # self.screen.blit(self.image, (drone_x, drone_y))        
+        self.screen.blit(rotated, rect.topleft)        
             
 
+    # definir donnees de recherche de chemin
     def set_pathfinding_data(self, explored_nodes, path):
         cellheight = grid_pixel_height / self.grid.height
         
@@ -83,6 +85,7 @@ class Visualizer:
         self.is_animating = True
         self.animation_endedAt = 0
 
+    # mettre a jour animation
     def update_animation(self):
         if self.is_animating:
             self.animation_progress += ANIMATION_SPEED / 100.0
@@ -91,10 +94,11 @@ class Visualizer:
                 self.is_animating = False
                 self.animation_endedAt = pygame.time.get_ticks()
 
+    # verifier si drone a la destination
     def has_drone_reached_destination(self):
-        """Check if drone animation is complete and has reached the destination"""
         return not self.is_animating and self.animation_endedAt > 0 and self.path and len(self.path) >= 2
 
+    # dessiner lignes de grille
     def draw_grid(self):
         pygame.draw.rect(self.screen, (245, 245, 245), 
                         (grid_offset_x, GRID_OFFSET_Y, grid_pixel_width, grid_pixel_height))
@@ -109,12 +113,12 @@ class Visualizer:
                             (grid_offset_x, GRID_OFFSET_Y + r * cellheight),
                             (grid_offset_x + grid_pixel_width, GRID_OFFSET_Y + r * cellheight), 1)
 
-        
         for c in range(self.grid.width + 1):
             pygame.draw.line(self.screen, (220, 220, 220),
                             (grid_offset_x + c * cellwidth, GRID_OFFSET_Y),
                             (grid_offset_x + c * cellwidth, GRID_OFFSET_Y + grid_pixel_height), 1)
     
+    # dessiner couleurs des cellules
     def draw_cells(self):
         cellheight = grid_pixel_height / self.grid.height
         cellwidth = grid_pixel_width / self.grid.width
@@ -126,19 +130,15 @@ class Visualizer:
                 y = GRID_OFFSET_Y + r * cellheight
 
                 if cell.cell_type == OBSTACLE:
-                    # Draw brick wall texture for obstacles
                     brick_scaled = pygame.transform.scale(self.brickwall_image, (int(cellwidth), int(cellheight)))
                     self.screen.blit(brick_scaled, (x, y))
                 elif cell.cell_type == FORBIDDEN:
-                    # Draw military base icon for forbidden zones
                     base_scaled = pygame.transform.scale(self.base_image, (int(cellwidth), int(cellheight)))
                     self.screen.blit(base_scaled, (x, y))
                 elif cell.cell_type == START:
-                    # Draw start icon for start position
                     start_scaled = pygame.transform.scale(self.start_image, (int(cellwidth), int(cellheight)))
                     self.screen.blit(start_scaled, (x, y))
                 elif cell.cell_type == END:
-                    # Draw destination icon for end position
                     destination_scaled = pygame.transform.scale(self.destination_image, (int(cellwidth), int(cellheight)))
                     self.screen.blit(destination_scaled, (x, y))
                 else:
@@ -146,6 +146,7 @@ class Visualizer:
                     pygame.draw.rect(self.screen, color,
                                     (x, y, cellwidth, cellheight))
 
+    # dessiner cellules explorees
     def draw_explored_nodes(self):
         cellheight = grid_pixel_height / self.grid.height
         cellwidth = grid_pixel_width / self.grid.width
@@ -160,6 +161,7 @@ class Visualizer:
             pygame.draw.rect(self.screen, COLORS['explored'],
                             (x, y, cellwidth, cellheight))
 
+    # dessiner ligne de chemin
     def draw_path(self):
         if not self.path or len(self.path) < 2 or self.is_animating:
             return
@@ -201,6 +203,7 @@ class Visualizer:
         if len(points) >= 2:
             pygame.draw.lines(self.screen, (100, 0, 100), False, points, 3)
 
+    # dessiner nombres de cout
     def draw_cell_costs_text(self):
         cellheight = grid_pixel_height / self.grid.height
         cellwidth = grid_pixel_width / self.grid.width
@@ -219,6 +222,7 @@ class Visualizer:
                     text_rect = text_surface.get_rect(center=(x, y))
                     self.screen.blit(text_surface, text_rect)
     
+    # dessiner tout
     def draw_all(self):
         self.draw_grid()
         self.draw_cells()
@@ -227,6 +231,7 @@ class Visualizer:
         self.draw_cell_costs_text()
         self.drawDroneImage()
         
+    # effacer visualisation
     def clear_pathfinding_visualization(self):
         self.explored_nodes = []
         self.path = []
@@ -234,6 +239,7 @@ class Visualizer:
         self.is_animating = False
         self.animation_endedAt = 0
     
+    # obtenir cellule depuis position ecran
     def get_cell_from_screen_pos(self, pos):
         x, y = pos
         

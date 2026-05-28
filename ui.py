@@ -8,6 +8,7 @@ from constants import (
 )
 
 class NumSlider:
+    # initialiser curseur
     def __init__(self, x, y, width, min_value, max_value, initial_value,text ="eee"):
         self.rect = pygame.Rect(x, y, width, 20)
         self.min_value = min_value
@@ -17,6 +18,7 @@ class NumSlider:
         self.text = text
         self.font = pygame.font.Font(None, 20)
 
+    # gerer evenements curseur
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
@@ -27,10 +29,12 @@ class NumSlider:
         elif event.type == pygame.MOUSEMOTION and self.is_dragging:
             self.update_value_from_pos(event.pos[0])
 
+    # mettre a jour valeur du curseur
     def update_value_from_pos(self, x):
         relative_x = max(0, min(x - self.rect.x, self.rect.width))
         self.value = self.min_value + (relative_x / self.rect.width) * (self.max_value - self.min_value)
 
+    # dessiner curseur
     def draw(self, surface):
         text_surface = self.font.render(self.text, True, (0, 0, 0))
         surface.blit(text_surface, (self.rect.x, self.rect.y - 20))
@@ -50,6 +54,7 @@ class NumSlider:
         pygame.draw.circle(surface, (255, 255, 255), (knob_x, knob_y), knob_radius)
 
 class Button:
+    # initialiser bouton
     def __init__(self, x, y, width, height, text, tool_id=TOOL_NONE):
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
@@ -57,9 +62,11 @@ class Button:
         self.is_hovered = False
         self.is_active = False
 
+    # verifier si bouton survole
     def check_hover(self, mouse_pos):
         self.is_hovered = self.rect.collidepoint(mouse_pos)
 
+    # dessiner bouton
     def draw(self, surface, font):
         if self.is_active:
             color = COLORS['button_active']
@@ -83,10 +90,12 @@ class Button:
         text_rect = text_surface.get_rect(center=self.rect.center)
         surface.blit(text_surface, text_rect)
 
+    # verifier si bouton clique
     def is_clicked(self, mouse_pos):
         return self.rect.collidepoint(mouse_pos)
 
 class UIManager:
+    # initialiser gestionnaire ui
     def __init__(self):
         self.buttons = []
 
@@ -94,8 +103,8 @@ class UIManager:
         start_y = 40
         gap = BUTTON_HEIGHT + BUTTON_MARGIN
         
-        self.xSliders = (NumSlider(start_x, start_y + 8 * gap + 20, BUTTON_WIDTH, 5, 100, 1,"grid x"))
-        self.ySliders = (NumSlider(start_x, start_y + 8 * gap + 60, BUTTON_WIDTH, 5, 100, 1,"grid y"))
+        self.xSliders = (NumSlider(start_x, start_y + 8 * gap + 20, BUTTON_WIDTH, 5, 100, 15,"grid x"))
+        self.ySliders = (NumSlider(start_x, start_y + 8 * gap + 60, BUTTON_WIDTH, 5, 100, 15,"grid y"))
         self.active_tool = TOOL_NONE
         self.create_buttons()
  
@@ -103,9 +112,11 @@ class UIManager:
         self.font_small = pygame.font.Font(None, BUTTON_FONT_SIZE - 4)
         self.font_title = pygame.font.Font(None, BUTTON_FONT_SIZE + 8)
 
+    # obtenir dimensions de grille
     def getDimensions(self):
         return max(5,int(self.xSliders.value)), max(5,int(self.ySliders.value))
 
+    # creer tous les boutons
     def create_buttons(self):
         start_x = SIDEBAR_X + 10
         start_y = 40
@@ -126,6 +137,7 @@ class UIManager:
             y = start_y + index * gap
             self.buttons.append(Button(start_x, y, BUTTON_WIDTH, BUTTON_HEIGHT, label, tool_id))
 
+    # gerer evenements ui
     def handle_event(self, event, grid, astar):
 
         self.xSliders.handle_event(event)
@@ -149,14 +161,17 @@ class UIManager:
 
         return None, None
 
+    # definir outil actif
     def set_active_tool(self, tool_id):
         self.active_tool = tool_id
         for button in self.buttons:
             button.is_active = button.tool_id == tool_id
 
+    # obtenir outil actif
     def get_active_tool(self):
         return self.active_tool
 
+    # dessiner ui
     def draw(self, surface):
         sidebar_rect = pygame.Rect(SIDEBAR_X - 20, 0, SIDEBAR_WIDTH + 40, SCREEN_HEIGHT)
         pygame.draw.rect(surface, COLORS['sidebar_bg'], sidebar_rect)
@@ -172,11 +187,11 @@ class UIManager:
 
         self.draw_info_panel(surface)
 
+    # dessiner panneau info
     def draw_info_panel(self, surface):
         x = SIDEBAR_X + 10
         y = 610
 
-        # Larger font for quick guide
         guide_font = pygame.font.Font(None, 14)
         
         title = self.font_title.render("Quick Guide", True, (44, 62, 80))
@@ -184,7 +199,6 @@ class UIManager:
 
         y += 32
         
-        # Single list
         lines = [
             "1. Select a tool",
             "2. Click on grid",
@@ -198,7 +212,6 @@ class UIManager:
             "Purple - Path",
         ]
 
-        # Draw list
         list_x = x
         list_y = y
         for line in lines:
@@ -209,6 +222,7 @@ class UIManager:
             surface.blit(text, (list_x, list_y))
             list_y += 22
 
+    # afficher resultats
     def draw_results(self, surface, path_cost, explored_count):
         from constants import SCREEN_WIDTH, SCREEN_HEIGHT
         

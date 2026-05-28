@@ -12,6 +12,7 @@ from ui import UIManager
 from visualization import Visualizer
 
 class DronePathfinderApp:
+    # initialiser app
     def __init__(self):
         pygame.init()
 
@@ -31,6 +32,7 @@ class DronePathfinderApp:
         self.last_cost = 0
         self.last_explored_count = 0
 
+    # traiter les evenements
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -45,15 +47,16 @@ class DronePathfinderApp:
             elif action == 'random_map':
                 self.generate_random_map()
             elif action == 'set_tool':
-                pass  # Tool is already set by UI manager
+                pass 
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Left click
+                if event.button == 1:
                     row, col = self.visualizer.get_cell_from_screen_pos(event.pos)
                     print(row,col)
                     if row is not None and col is not None:
                         self.handle_grid_click(row, col)
     
+    # gerer clic sur grille
     def handle_grid_click(self, row, col):
         tool = self.ui_manager.get_active_tool()
 
@@ -84,6 +87,7 @@ class DronePathfinderApp:
             self.visualizer.clear_pathfinding_visualization()
             self.path_found = False
     
+    # executer algorithme astar
     def run_pathfinding(self):
         if self.grid.start is None or self.grid.end is None:
             print("Error: Please set both start and end points!")
@@ -101,16 +105,17 @@ class DronePathfinderApp:
             self.path_found = False
             print("No path found!")
         
-        # Set visualization data
         explored = self.astar.get_explored_nodes()
         self.visualizer.set_pathfinding_data(explored, path)
     
+    # effacer grille
     def clear_grid(self):
         self.grid.clear()
         self.visualizer.clear_pathfinding_visualization()
         self.path_found = False
         self.ui_manager.set_active_tool(TOOL_NONE)
     
+    # generer carte aleatoire
     def generate_random_map(self):
         self.grid.generate_random_map(
             obstacle_density=0.15,
@@ -121,13 +126,14 @@ class DronePathfinderApp:
         self.path_found = False
         print("Random map generated!")
     
+    # mettre a jour etat du jeu
     def update(self, x, y):
         self.grid.refill(x, y)
         self.visualizer.update_animation()
     
+    # afficher graphiques
     def render(self):
         try:
-            # Clear screen with background color
             self.screen.fill((230, 235, 240))
             
             self.visualizer.draw_all()
@@ -139,6 +145,7 @@ class DronePathfinderApp:
         except Exception as e:
             print(f"Error during rendering: {e}")
     
+    # boucle principale du jeu
     def run(self):
         try:
             while self.running:
@@ -157,9 +164,8 @@ class DronePathfinderApp:
             pygame.quit()
             sys.exit()
 
-
+# point d entree
 def main():
-    # print('test')
     app = DronePathfinderApp()
     app.run()
 
